@@ -137,7 +137,7 @@ class ServiceAccountCredentials(AssertionCredentials):
             strip, to_serialize=to_serialize)
 
     @classmethod
-    def _from_parsed_json_keyfile(cls, keyfile_dict, scopes):
+    def _from_parsed_json_keyfile(cls, keyfile_dict, scopes, **kwargs):
         """Helper for factory constructors from JSON keyfile.
 
         Args:
@@ -145,6 +145,8 @@ class ServiceAccountCredentials(AssertionCredentials):
                           containing the contents of the JSON keyfile.
             scopes: List or string, Scopes to use when acquiring an
                     access token.
+            kwargs: dict, Extra key-value pairs (both strings) to send in the
+                payload body when making an assertion.
 
         Returns:
             ServiceAccountCredentials, a credentials object created from
@@ -168,18 +170,21 @@ class ServiceAccountCredentials(AssertionCredentials):
         signer = crypt.Signer.from_string(private_key_pkcs8_pem)
         credentials = cls(service_account_email, signer, scopes=scopes,
                           private_key_id=private_key_id,
-                          client_id=client_id)
+                          client_id=client_id,
+						  **kwargs)
         credentials._private_key_pkcs8_pem = private_key_pkcs8_pem
         return credentials
 
     @classmethod
-    def from_json_keyfile_name(cls, filename, scopes=''):
+    def from_json_keyfile_name(cls, filename, scopes='', **kwargs):
         """Factory constructor from JSON keyfile by name.
 
         Args:
             filename: string, The location of the keyfile.
             scopes: List or string, (Optional) Scopes to use when acquiring an
                     access token.
+            kwargs: dict, Extra key-value pairs (both strings) to send in the
+                payload body when making an assertion.
 
         Returns:
             ServiceAccountCredentials, a credentials object created from
@@ -192,10 +197,10 @@ class ServiceAccountCredentials(AssertionCredentials):
         """
         with open(filename, 'r') as file_obj:
             client_credentials = json.load(file_obj)
-        return cls._from_parsed_json_keyfile(client_credentials, scopes)
+        return cls._from_parsed_json_keyfile(client_credentials, scopes, **kwargs)
 
     @classmethod
-    def from_json_keyfile_dict(cls, keyfile_dict, scopes=''):
+    def from_json_keyfile_dict(cls, keyfile_dict, scopes='', **kwargs):
         """Factory constructor from parsed JSON keyfile.
 
         Args:
@@ -203,6 +208,8 @@ class ServiceAccountCredentials(AssertionCredentials):
                           containing the contents of the JSON keyfile.
             scopes: List or string, (Optional) Scopes to use when acquiring an
                     access token.
+            kwargs: dict, Extra key-value pairs (both strings) to send in the
+                payload body when making an assertion.
 
         Returns:
             ServiceAccountCredentials, a credentials object created from
@@ -213,12 +220,13 @@ class ServiceAccountCredentials(AssertionCredentials):
             KeyError, if one of the expected keys is not present in
                 the keyfile.
         """
-        return cls._from_parsed_json_keyfile(keyfile_dict, scopes)
+        return cls._from_parsed_json_keyfile(keyfile_dict, scopes, **kwargs)
 
     @classmethod
     def _from_p12_keyfile_contents(cls, service_account_email,
                                    private_key_pkcs12,
-                                   private_key_password=None, scopes=''):
+                                   private_key_password=None, scopes='',
+                                   **kwargs):
         """Factory constructor from JSON keyfile.
 
         Args:
@@ -229,6 +237,8 @@ class ServiceAccountCredentials(AssertionCredentials):
                                   private key. Defaults to ``notasecret``.
             scopes: List or string, (Optional) Scopes to use when acquiring an
                     access token.
+            kwargs: dict, Extra key-value pairs (both strings) to send in the
+                payload body when making an assertion.
 
         Returns:
             ServiceAccountCredentials, a credentials object created from
@@ -244,14 +254,14 @@ class ServiceAccountCredentials(AssertionCredentials):
             raise NotImplementedError(_PKCS12_ERROR)
         signer = crypt.Signer.from_string(private_key_pkcs12,
                                           private_key_password)
-        credentials = cls(service_account_email, signer, scopes=scopes)
+        credentials = cls(service_account_email, signer, scopes=scopes,**kwargs)
         credentials._private_key_pkcs12 = private_key_pkcs12
         credentials._private_key_password = private_key_password
         return credentials
 
     @classmethod
     def from_p12_keyfile(cls, service_account_email, filename,
-                         private_key_password=None, scopes=''):
+                         private_key_password=None, scopes='', **kwargs):
         """Factory constructor from JSON keyfile.
 
         Args:
@@ -262,6 +272,8 @@ class ServiceAccountCredentials(AssertionCredentials):
                                   private key. Defaults to ``notasecret``.
             scopes: List or string, (Optional) Scopes to use when acquiring an
                     access token.
+            kwargs: dict, Extra key-value pairs (both strings) to send in the
+                payload body when making an assertion.
 
         Returns:
             ServiceAccountCredentials, a credentials object created from
@@ -273,13 +285,15 @@ class ServiceAccountCredentials(AssertionCredentials):
         """
         with open(filename, 'rb') as file_obj:
             private_key_pkcs12 = file_obj.read()
+
         return cls._from_p12_keyfile_contents(
             service_account_email, private_key_pkcs12,
-            private_key_password=private_key_password, scopes=scopes)
+            private_key_password=private_key_password, scopes=scopes,
+			**kwargs)
 
     @classmethod
     def from_p12_keyfile_buffer(cls, service_account_email, file_buffer,
-                                private_key_password=None, scopes=''):
+                                private_key_password=None, scopes='', **kwargs):
         """Factory constructor from JSON keyfile.
 
         Args:
@@ -291,6 +305,8 @@ class ServiceAccountCredentials(AssertionCredentials):
                                   private key. Defaults to ``notasecret``.
             scopes: List or string, (Optional) Scopes to use when acquiring an
                     access token.
+            kwargs: dict, Extra key-value pairs (both strings) to send in the
+                payload body when making an assertion.
 
         Returns:
             ServiceAccountCredentials, a credentials object created from
@@ -303,7 +319,8 @@ class ServiceAccountCredentials(AssertionCredentials):
         private_key_pkcs12 = file_buffer.read()
         return cls._from_p12_keyfile_contents(
             service_account_email, private_key_pkcs12,
-            private_key_password=private_key_password, scopes=scopes)
+            private_key_password=private_key_password, scopes=scopes,
+			**kwargs)
 
     def _generate_assertion(self):
         """Generate the assertion that will be used in the request."""
