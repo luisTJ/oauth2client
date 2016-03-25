@@ -353,6 +353,29 @@ class ServiceAccountCredentialsTests(unittest2.TestCase):
         self.assertEqual(len(signer.sign.mock_calls), 1 + 0 + 1)
 
         self.assertEqual(credentials.access_token, token2)
+    
+    def test_pass_in_optional_claim(self):
+
+        scopes = []
+        service_account_email = 'service@email.com'
+        email = 'existing@email.com'
+
+        key_location = data_filename('gcloud/application_default_credentials.json')
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(key_location, scopes=scopes, sub=email)
+        self.assertEqual(credentials._kwargs['sub'], email)
+        
+        with open(data_filename('gcloud/application_default_credentials.json')) as file_obj:    
+            data = json.load(file_obj)
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(data, scopes, sub=email)
+        self.assertEqual(credentials._kwargs['sub'], email)
+
+        key_location = data_filename('privatekey.p12')
+        credentials = ServiceAccountCredentials.from_p12_keyfile(service_account_email, key_location, private_key_password=None, scope=scopes, sub=email)
+        self.assertEqual(credentials._kwargs['sub'], email)
+
+        with open(data_filename('privatekey.p12'), 'rb') as file_obj:
+            credentials = ServiceAccountCredentials.from_p12_keyfile_buffer(service_account_email, file_obj, private_key_password=None, scope=scopes, sub=email)
+            self.assertEqual(credentials._kwargs['sub'], email)
 
 
 if __name__ == '__main__':  # pragma: NO COVER
